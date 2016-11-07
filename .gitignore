@@ -1,0 +1,7 @@
+disciple.d
+.erlang.mk
+relx
+_rel
+ebin
+*.beam
+*.swp
