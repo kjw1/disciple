@@ -3,7 +3,8 @@
 
 %% API.
 -export([start_link/0]).
--export([face_challenge/2]).
+-export([face_challenge/4]).
+-export([debug_print/1]).
 
 %% gen_server.
 -export([init/1]).
@@ -29,8 +30,11 @@
 start_link() ->
   gen_server:start_link(?MODULE, [], []).
 
-face_challenge(Disciple, Challenge) ->
-  gen_server:call(Disciple, {challenge, Challenge}).
+face_challenge(Disciple, Challenge, Success, Failure) ->
+  gen_server:call(Disciple, {challenge, Challenge, Success, Failure}).
+
+debug_print(Disciple) ->
+  gen_server:cast(Disciple, debug_print).
 
 %% gen_server.
 
@@ -50,16 +54,28 @@ handle_call({feedback, chastise}, _From, #disciple{pride=Pride, focus=Focus, con
   NewFocus = apply_caps(0, 100, Focus + 10),
   io:format("Confidence now ~p, focus now ~p~n", [NewConfidence, NewFocus]),
   {reply, {NewConfidence, NewFocus}, Disciple#disciple{focus=NewFocus, confidence=NewConfidence}};
-handle_call({challenge, Difficulty}, _From, #disciple{focus=Focus, discipline=Discipline, skill=Skill}=Disciple) ->
+handle_call({challenge, Difficulty, SuccessCons, FailureCons}, _From, #disciple{focus=Focus, discipline=Discipline, skill=Skill}=Disciple) ->
   {Success, SkillChange, NextState} = calculate_challenge_result(Disciple, Difficulty),
   NewConfidence = adjust_confidence_on_result(Success, Disciple, Difficulty),
   NewFocus = apply_caps(0, 100, Focus + adjust_focus_on_difficulty(Success, Skill, Discipline, Difficulty)),
   io:format("Confidence now ~p, Focus ~p~n", [NewConfidence, NewFocus]),
   NewDisciple = Disciple#disciple{confidence = NewConfidence, focus=NewFocus, skill=Skill + SkillChange, rand_state=NextState},
-  {reply, Success, NewDisciple};
+  {reply, Success, apply_cons(Success, NewDisciple, SuccessCons, FailureCons)};
 handle_call(_Request, _From, State) ->
   {reply, ignored, State}.
 
+handle_cast(debug_print, #disciple{
+    health=Health,
+    skill=Skill,
+    confidence=Confidence,
+    pride=Pride,
+    discipline=Discipline,
+    focus=Focus
+  }=Disciple) ->
+  io:format("Health ~p Skill ~p Confidence ~p Pride ~p Discipline ~p Focus ~p~n", [
+    Health, Skill, Confidence, Pride, Discipline, Focus
+  ]),
+  {noreply, Disciple};
 handle_cast(_Msg, State) ->
   {noreply, State}.
 
@@ -74,6 +90,22 @@ code_change(_OldVsn, State, _Extra) ->
 
 
 %% helpers
+
+apply_cons(success, Disciple, SuccessCons, _FailureCons) ->
+  lists:foldl(fun apply_con/2, Disciple, SuccessCons);
+apply_cons(failure, Disciple, _SuccessCons, FailureCons) ->
+  lists:foldl(fun apply_con/2, Disciple, FailureCons).
+
+apply_con({health, HealthChange}, #disciple{health=Health}=Disciple) ->
+  NewHealth = apply_caps(0, 100, Health + HealthChange),
+  Disciple#disciple{health=NewHealth};
+apply_con({focus, FocusChange}, #disciple{focus=Focus}=Disciple) ->
+  NewFocus = apply_caps(0, 100, Focus + FocusChange),
+  Disciple#disciple{focus=NewFocus};
+apply_con({confidence, ConfidenceChange}, #disciple{confidence=Confidence}=Disciple) ->
+  NewConfidence = apply_caps(0, 200, Confidence + ConfidenceChange),
+  Disciple#disciple{confidence=NewConfidence}.
+
 adjust_focus_on_difficulty(success, Skill, Discipline, Difficulty) ->
   case judge_difficulty(Skill, Difficulty) of
     easy -> -1 / (Discipline / 100);
@@ -141,7 +173,7 @@ calculate_challenge_result(Disciple, Difficulty) ->
   end.
 
 attempt_challenge(#disciple{skill=Skill, focus=Focus, rand_state=RandState, confidence=Confidence}, Difficulty) ->
-  io:format("Attempting training with: Skill: ~p Difficulty:~p Confidence:~p~n", [Skill, Difficulty, Confidence]),
+  io:format("Attempting challenge with: Skill: ~p Difficulty:~p Confidence:~p~n", [Skill, Difficulty, Confidence]),
   {SkillRoll,NextState} = rand:normal_s(RandState),
   io:format("SKill Roll: ~p~n", [SkillRoll]),
   ConSkill = apply_range_modifier(Skill, Confidence),

@@ -12,8 +12,13 @@ do_run() ->
 
 test_adventure() ->
   Ad1 = disc_adventure:new(),
-  Stages = [ {"find some kobolds", 100, "kobold camp found", "didn't find anything"},
-             {"fight the kobolds", 100, "kobolds killed", "kobolds force a retreat"} ],
+  Stages = [ {"find some kobolds", 100,
+               {"kobold camp found", []}, {"didn't find anything", [{focus, -1}]}
+             },
+             {"fight the kobolds", 100,
+               {"kobolds killed", [{confidence,2}]},
+               {"kobolds force a retreat", [{health, -10}]}
+             } ],
   Ad2 = lists:foldl(fun add_stages/2, Ad1, Stages),
   {ok, D} = disc_disciple:start_link(),
   disc_adventure:go(Ad2, D).
