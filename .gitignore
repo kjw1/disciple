@@ -1,3 +1,4 @@
+deps
 disciple.d
 .erlang.mk
 relx

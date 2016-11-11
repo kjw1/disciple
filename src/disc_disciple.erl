@@ -5,6 +5,7 @@
 -export([start_link/0]).
 -export([face_challenge/4]).
 -export([debug_print/1]).
+-export([get_id/1]).
 
 %% gen_server.
 -export([init/1]).
@@ -15,6 +16,8 @@
 -export([code_change/3]).
 
 -record(disciple, {
+  id,
+  name = <<"Sara">>,
   skill = 100,
   health = 100,
   confidence = 100,
@@ -36,10 +39,18 @@ face_challenge(Disciple, Challenge, Success, Failure) ->
 debug_print(Disciple) ->
   gen_server:cast(Disciple, debug_print).
 
+get_stats(Disciple) ->
+  gen_server:call(Disciple, stats).
+
+get_id(Disciple) ->
+  gen_server:call(Disciple, get_id).
+
 %% gen_server.
 
 init([]) ->
-  {ok, #disciple{rand_state=rand:seed(exsplus)}}.
+  Id = uuid:get_v4(),
+  disc_disciple_locator:register_disciple(Id, self()),
+  {ok, #disciple{id=Id, rand_state=rand:seed(exsplus)}}.
 
 handle_call({feedback, refocus}, _From, #disciple{discipline=Discipline, focus=Focus}=Disciple) ->
   NewFocus = apply_caps(0, 100, Focus + refocus_focus_change(Discipline)),
@@ -61,10 +72,11 @@ handle_call({challenge, Difficulty, SuccessCons, FailureCons}, _From, #disciple{
   io:format("Confidence now ~p, Focus ~p~n", [NewConfidence, NewFocus]),
   NewDisciple = Disciple#disciple{confidence = NewConfidence, focus=NewFocus, skill=Skill + SkillChange, rand_state=NextState},
   {reply, Success, apply_cons(Success, NewDisciple, SuccessCons, FailureCons)};
-handle_call(_Request, _From, State) ->
-  {reply, ignored, State}.
-
-handle_cast(debug_print, #disciple{
+handle_call(get_id, _From, #disciple{id=Id}=Disciple) ->
+  {reply, Id, Disciple};
+handle_call(get_stats, #disciple{
+    id=Id,
+    name=Name,
     health=Health,
     skill=Skill,
     confidence=Confidence,
@@ -72,8 +84,23 @@ handle_cast(debug_print, #disciple{
     discipline=Discipline,
     focus=Focus
   }=Disciple) ->
-  io:format("Health ~p Skill ~p Confidence ~p Pride ~p Discipline ~p Focus ~p~n", [
-    Health, Skill, Confidence, Pride, Discipline, Focus
+  Reply = {Id, Name, Health, Skill, Confidence, Pride, Discipline, Focus},
+  {reply, Reply, Disciple};
+handle_call(_Request, _From, State) ->
+  {reply, ignored, State}.
+
+handle_cast(debug_print, #disciple{
+    id=Id,
+    name=Name,
+    health=Health,
+    skill=Skill,
+    confidence=Confidence,
+    pride=Pride,
+    discipline=Discipline,
+    focus=Focus
+  }=Disciple) ->
+  io:format("Id ~p Name ~p Health ~p Skill ~p Confidence ~p Pride ~p Discipline ~p Focus ~p~n", [
+    uuid:uuid_to_string(Id, binary_standard), Name, Health, Skill, Confidence, Pride, Discipline, Focus
   ]),
   {noreply, Disciple};
 handle_cast(_Msg, State) ->
