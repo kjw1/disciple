@@ -18,24 +18,24 @@ add_stage(#adventure{stages=Stages}=Adventure, Description, Difficulty, SuccessM
   
 
 go(#adventure{stages=Stages}, Disciple) ->
-  apply_stages(Disciple, lists:reverse(Stages)).
+  apply_stages(Disciple, lists:reverse(Stages), []).
 
-apply_stages(_Disciple, []) ->
-  success;
+apply_stages(_Disciple, [], Results) ->
+  [ success | Results ];
 apply_stages(Disciple, [#stage{description=Description,
            difficulty=Difficulty,
            success={SuccessMessage, SuccessCons},
-           failure={FailureMessage, FailureCons}} | Stages]) ->
+           failure={FailureMessage, FailureCons}} | Stages], Results) ->
   io:format("New stage: ~p~n", [Description]),
   disc_disciple:debug_print(Disciple),
   case disc_disciple:face_challenge(Disciple, Difficulty, SuccessCons, FailureCons) of
     success ->
       io:format("Success: ~p~n", [SuccessMessage]),
       disc_disciple:debug_print(Disciple),
-      apply_stages(Disciple, Stages);
+      apply_stages(Disciple, Stages, [ {success, SuccessMessage} | Results ]);
     failure ->
       io:format("Failure: ~p~n", [FailureMessage]),
-      failure
+      [ {failure, FailureMessage } | Results ]
   end.
 
 

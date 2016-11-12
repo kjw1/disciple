@@ -6,7 +6,11 @@
 
 start(_Type, _Args) ->
   Dispatch = cowboy_router:compile([
-    {'_', [{"/1/disciple/[:id]", disc_disciple_http, []}]}
+    {'_', [ {"/1/disciple/[:id]", disc_disciple_http, []},
+            {"/", cowboy_static, {priv_file, disciple, "static/index.html"}},
+            {"/[...]", cowboy_static, {priv_dir, disciple, "static/"}}
+          ]
+    }
   ]),
   cowboy:start_http(disc_disciple_cowboy_http, 100, [{port, 8080}],
     [{env, [{dispatch, Dispatch}]}]

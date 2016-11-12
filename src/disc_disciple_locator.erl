@@ -13,6 +13,6 @@ register_disciple(Id, Disciple) ->
   ets:insert(disciple_location, #disciple_location{id=Id, pid=Disciple}).
 
 find_disciple(Id) ->
-  #disciple_location{pid=Pid} = ets:lookup(disciple_location, Id),
+  [#disciple_location{pid=Pid}] = ets:lookup(disciple_location, Id),
   Pid.
 

@@ -6,6 +6,7 @@
 -export([face_challenge/4]).
 -export([debug_print/1]).
 -export([get_id/1]).
+-export([get_stats/1]).
 
 %% gen_server.
 -export([init/1]).
@@ -40,7 +41,7 @@ debug_print(Disciple) ->
   gen_server:cast(Disciple, debug_print).
 
 get_stats(Disciple) ->
-  gen_server:call(Disciple, stats).
+  gen_server:call(Disciple, get_stats).
 
 get_id(Disciple) ->
   gen_server:call(Disciple, get_id).
@@ -74,8 +75,7 @@ handle_call({challenge, Difficulty, SuccessCons, FailureCons}, _From, #disciple{
   {reply, Success, apply_cons(Success, NewDisciple, SuccessCons, FailureCons)};
 handle_call(get_id, _From, #disciple{id=Id}=Disciple) ->
   {reply, Id, Disciple};
-handle_call(get_stats, #disciple{
-    id=Id,
+handle_call(get_stats, _Ref, #disciple{
     name=Name,
     health=Health,
     skill=Skill,
@@ -84,7 +84,15 @@ handle_call(get_stats, #disciple{
     discipline=Discipline,
     focus=Focus
   }=Disciple) ->
-  Reply = {Id, Name, Health, Skill, Confidence, Pride, Discipline, Focus},
+  Reply = #{ 
+             name => Name,
+             health => Health,
+             skill => Skill,
+             confidence => Confidence,
+             pride => Pride,
+             discipline => Discipline,
+             focus => Focus
+           },
   {reply, Reply, Disciple};
 handle_call(_Request, _From, State) ->
   {reply, ignored, State}.

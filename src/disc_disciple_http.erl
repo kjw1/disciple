@@ -25,12 +25,17 @@ handle_id(undefined, Req) ->
     start => {disc_disciple, start_link, []}
   }),
   NewId = disc_disciple:get_id(Disciple),
+  Reply = #{ id => uuid:uuid_to_string(NewId, binary_standard) },
   {ok, Req2} = cowboy_req:reply(200,
-    [{<<"application-type">>, <<"text/plain">>}],
-    uuid:uuid_to_string(NewId, binary_standard), Req),
+    [{<<"content-type">>, <<"application/json">>}],
+    jiffy:encode(Reply), Req),
   Req2;
 handle_id(IdBinary, Req) ->
   Id = uuid:string_to_uuid(IdBinary),
-  Disciple = disciple_locator:find_disciple(Id),
-  
+  Disciple = disc_disciple_locator:find_disciple(Id),
+  Stats = disc_disciple:get_stats(Disciple),
+  {ok, Req2} = cowboy_req:reply(200,
+    [{<<"content-type">>, <<"application/json">>}],
+    jiffy:encode(Stats), Req),
+  Req2.
 
