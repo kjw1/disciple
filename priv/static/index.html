@@ -34,6 +34,7 @@
       <input id="new-disciple" placeholder="Bob Bobberson">
     </header>
     <section id="main">
+      <textarea cols=100 rows=30 id="disciple-log" readonly=true></textarea>
       <ul id="disciple-list"></ul>
     </section>
   </section>
@@ -51,6 +52,9 @@
         <li>focus: <%- focus %></li>
         <li>discipline: <%- discipline %></li>
       </ul>
+      <button class="encourage">Encourage</button>
+      <button class="chastise">Chastise</button>
+      <button class="refocus">Refocus</button>
     </div>
   </script>  
 

@@ -3,6 +3,28 @@
 
 var app = {}; // create namespace for our app
 
+
+app.log_append = function(entry) {
+  var log_area = $("#disciple-log");
+  log_area.val(log_area.val() + "\n" + entry);
+};
+
+app.do_disciple_action = function(action, content, view, model) {
+  var encoded_content = JSON.stringify(content);
+  $.ajax({
+    type: "POST",
+    url: model.url() + "/" + action,
+    data: encoded_content,
+    success: function(data, code, xhr) {
+      app.log_append(JSON.stringify(data));
+      model.set(data);
+      view.render();
+    },
+    dataType: "json",
+    contentType: "application/json; charset=UTF-8"
+  });
+};
+
 //--------------
 // Models
 //--------------
@@ -43,6 +65,23 @@ app.DiscipleView = Backbone.View.extend({
   render: function(){
     this.$el.html(this.template(this.model.toJSON()));
     return this; // enable chained calls
+  },
+  events: {
+    'click .encourage': 'encourageDisciple',
+    'click .chastise': 'chastiseDisciple',
+    'click .refocus': 'refocusDisciple'
+  },
+  encourageDisciple: function(e) {
+    var encourage_content = { feedback_type: "encourage" };
+    app.do_disciple_action("feedback", encourage_content, this, this.model);
+  },
+  chastiseDisciple: function(e) {
+    var chastise_content = { feedback_type: "chastise" };
+    app.do_disciple_action("feedback", chastise_content, this, this.model);
+  },
+  refocusDisciple: function(e) {
+    var refocus_content = { feedback_type: "refocus" };
+    app.do_disciple_action("feedback", refocus_content, this, this.model);
   }
 });
 
@@ -68,6 +107,7 @@ app.AppView = Backbone.View.extend({
     }
     app.discipleList.create(this.newAttributes(), { wait: true });
     this.input.val(''); // clean input box
+    app.log_append("Created new disciple!");
   },
   addOne: function(disciple){
     var view = new app.DiscipleView({model: disciple});

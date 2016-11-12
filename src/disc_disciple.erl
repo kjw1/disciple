@@ -7,6 +7,7 @@
 -export([debug_print/1]).
 -export([get_id/1]).
 -export([get_stats/1]).
+-export([give_feedback/2]).
 
 %% gen_server.
 -export([init/1]).
@@ -45,6 +46,13 @@ get_stats(Disciple) ->
 
 get_id(Disciple) ->
   gen_server:call(Disciple, get_id).
+
+give_feedback(Disciple, encourage) ->
+  gen_server:call(Disciple, {feedback, encourage});
+give_feedback(Disciple, chastise) ->
+  gen_server:call(Disciple, {feedback, chastise});
+give_feedback(Disciple, refocus) ->
+  gen_server:call(Disciple, {feedback, refocus}).
 
 %% gen_server.
 
