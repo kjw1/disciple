@@ -9,7 +9,13 @@ var app = {}; // create namespace for our app
 
 app.Disciple = Backbone.Model.extend({
   defaults: {
-    name: "Bob"
+    name: "Bob",
+    skill: 100,
+    health: 100,
+    confidence: 100,
+    pride: 100,
+    focus: 100,
+    discipline: 100
   }
 });
 
@@ -60,7 +66,7 @@ app.AppView = Backbone.View.extend({
     if ( e.which !== 13 || !this.input.val().trim() ) { // ENTER_KEY = 13
       return;
     }
-    app.discipleList.create(this.newAttributes());
+    app.discipleList.create(this.newAttributes(), { wait: true });
     this.input.val(''); // clean input box
   },
   addOne: function(disciple){

@@ -51,7 +51,28 @@ get_id(Disciple) ->
 init([Name]) ->
   Id = uuid:get_v4(),
   disc_disciple_locator:register_disciple(Id, self()),
-  {ok, #disciple{id=Id, name=Name, rand_state=rand:seed(exsplus)}}.
+  RandState = rand:seed(exsplus),
+  {SkillRoll,RandState2} = rand:normal_s(RandState),
+  {HealthRoll,RandState3} = rand:normal_s(RandState2),
+  {ConfidenceRoll,RandState4} = rand:normal_s(RandState3),
+  {PrideRoll,RandState5} = rand:normal_s(RandState4),
+  {FocusRoll,RandState6} = rand:normal_s(RandState5),
+  {DisciplineRoll,RandState7} = rand:normal_s(RandState6),
+  Skill = apply_caps(50, 150, 100 + SkillRoll * 10),
+  Health = apply_caps(30, 180, 100 + HealthRoll * 20),
+  Confidence = apply_caps(30, 180, 100 + ConfidenceRoll * 20),
+  Pride = apply_caps(30, 180, 100 + PrideRoll * 30),
+  Focus = apply_caps(0, 100, 80 + FocusRoll * 20),
+  Discipline = apply_caps(20, 200, 100 + DisciplineRoll * 30),
+  {ok, #disciple{
+    id=Id, name=Name,
+    skill=Skill,
+    health=Health,
+    confidence=Confidence,
+    pride=Pride,
+    focus=Focus,
+    discipline=Discipline,
+    rand_state=RandState7}}.
 
 handle_call({feedback, refocus}, _From, #disciple{discipline=Discipline, focus=Focus}=Disciple) ->
   NewFocus = apply_caps(0, 100, Focus + refocus_focus_change(Discipline)),
