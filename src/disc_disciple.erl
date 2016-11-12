@@ -2,7 +2,7 @@
 -behaviour(gen_server).
 
 %% API.
--export([start_link/0]).
+-export([start_link/1]).
 -export([face_challenge/4]).
 -export([debug_print/1]).
 -export([get_id/1]).
@@ -30,9 +30,9 @@
 
 %% API.
 
--spec start_link() -> {ok, pid()}.
-start_link() ->
-  gen_server:start_link(?MODULE, [], []).
+-spec start_link(binary()) -> {ok, pid()}.
+start_link(Name) ->
+  gen_server:start_link(?MODULE, [Name], []).
 
 face_challenge(Disciple, Challenge, Success, Failure) ->
   gen_server:call(Disciple, {challenge, Challenge, Success, Failure}).
@@ -48,10 +48,10 @@ get_id(Disciple) ->
 
 %% gen_server.
 
-init([]) ->
+init([Name]) ->
   Id = uuid:get_v4(),
   disc_disciple_locator:register_disciple(Id, self()),
-  {ok, #disciple{id=Id, rand_state=rand:seed(exsplus)}}.
+  {ok, #disciple{id=Id, name=Name, rand_state=rand:seed(exsplus)}}.
 
 handle_call({feedback, refocus}, _From, #disciple{discipline=Discipline, focus=Focus}=Disciple) ->
   NewFocus = apply_caps(0, 100, Focus + refocus_focus_change(Discipline)),

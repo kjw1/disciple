@@ -4,7 +4,7 @@
 -export([test_adventure/0]).
 
 do_run() ->
-  {ok, D} = disc_disciple:start_link(),
+  {ok, D} = disc_disciple:start_link(<<"Sara">>),
   disc_disciple:face_challenge(D, 100),
   disc_disciple:face_challenge(D, 100),
   disc_disciple:face_challenge(D, 100).
@@ -20,7 +20,7 @@ test_adventure() ->
                {"kobolds force a retreat", [{health, -10}]}
              } ],
   Ad2 = lists:foldl(fun add_stages/2, Ad1, Stages),
-  {ok, D} = disc_disciple:start_link(),
+  {ok, D} = disc_disciple:start_link(<<"Sara">>),
   disc_adventure:go(Ad2, D).
 
 

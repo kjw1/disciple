@@ -52,7 +52,7 @@ app.todoList = new app.TodoList();
 // Views
 //--------------
 
-// renders individual todo items list (li)
+// renders individual disciple items list (li)
 app.TodoView = Backbone.View.extend({
   tagName: 'li',
   template: _.template($('#item-template').html()),
@@ -108,19 +108,38 @@ app.DiscipleView = Backbone.View.extend({
 app.AppView = Backbone.View.extend({
   // el - stands for element. Every view has a element associate in with HTML
   //      content will be rendered.
-  el: '#container',
-  template: _.template("<h3>Hello <%= who %></h3>"),
+  el: '#discipleapp',
   // It's the first function called when this view it's instantiated.
   initialize: function(){
+    this.input = this.$('#new-disciple');
     app.discipleList.on('add', this.addOne, this);
     app.discipleList.on('reset', this.addAll, this);
     app.discipleList.fetch();
     this.render();
   },
-  // $el - it's a cached jQuery object (el), in which you can use jQuery functions
-  //       to push content. Like the Hello World in this case.
-  render: function(){
-    this.$el.html(this.template({who:"me"}));
+  events: {
+    'keypress #new-disciple': 'createDiscipleOnEnter'
+  },
+  createDiscipleOnEnter: function(e){
+    console.log(e.which);
+    if ( e.which !== 13 || !this.input.val().trim() ) { // ENTER_KEY = 13
+      return;
+    }
+    app.discipleList.create(this.newAttributes());
+    this.input.val(''); // clean input box
+  },
+  addOne: function(disciple){
+    var view = new app.DiscipleView({model: disciple});
+    $('#disciple-list').append(view.render().el);
+  },
+  addAll: function(){
+    this.$('#disciple-list').html(''); // clean the disciple list
+    app.discipleList.each(this.addOne, this);
+  },
+  newAttributes: function(){
+    return {
+      name: this.input.val().trim()
+    }
   }
 });
 
