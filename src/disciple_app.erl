@@ -8,6 +8,7 @@ start(_Type, _Args) ->
   Dispatch = cowboy_router:compile([
     {'_', [ {"/1/disciple/[:id/[:action]]", disc_disciple_http, []},
             {"/1/adventure/[:id]", disc_adventure_http, []},
+            {"/1/stage/[:id]", disc_stage_http, []},
             {"/", cowboy_static, {priv_file, disciple, "static/index.html"}},
             {"/[...]", cowboy_static, {priv_dir, disciple, "static/"}}
           ]
