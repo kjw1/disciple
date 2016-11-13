@@ -2,6 +2,7 @@
 
 -export([init_ets/0, go/2, get_adventure/1, save/1]).
 -export([new/1, get_id/1, get_stages/1, get_name/1, add_stage/2]).
+-export([set_name/2, clear_stages/1]).
 
 -record(adventure, {id, name, stages = []}).
 
@@ -28,6 +29,11 @@ new(Name) ->
 
 add_stage(#adventure{stages=Stages}=Adventure, StageId) ->
   Adventure#adventure{stages = [ StageId | Stages ]}.
+
+clear_stages(#adventure{}=Adventure) ->
+  Adventure#adventure{stages=[]}.
+set_name(#adventure{}=Adventure, Name) ->
+  Adventure#adventure{name=Name}.
 
 go(#adventure{stages=StageIds}, Disciple) ->
   Stages = lists:foldl(fun(StageId, StageAcc) ->

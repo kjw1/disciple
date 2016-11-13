@@ -25,12 +25,34 @@ handle_id(<<"POST">>, undefined, Req) ->
   #{ <<"name">> := Name, <<"stages">> := Stages } = jiffy:decode(Body, [return_maps]),
   Ad1 = disc_adventure:new(Name),
   Ad2 = add_all_stages(Stages, Ad1),
+  disc_adventure:save(Ad2),
   AdReply = adventure_to_map(Ad2),
   {ok, Req3} = cowboy_req:reply(200,
     [{<<"content-type">>, <<"application/json">>}],
     jiffy:encode(AdReply), Req2),
+  Req3;
+handle_id(<<"GET">>, Id, Req) ->
+  Uuid = uuid:string_to_uuid(Id),
+  Ad = disc_adventure:get_adventure(Uuid),
+  AdReply = adventure_to_map(Ad),
+  {ok, Req2} = cowboy_req:reply(200,
+    [{<<"content-type">>, <<"application/json">>}],
+    jiffy:encode(AdReply), Req),
+  Req2;
+handle_id(<<"POST">>, Id, Req) ->
+  Uuid = uuid:string_to_uuid(Id),
+  {ok, Body, Req2} = cowboy_req:body(Req),
+  #{ <<"name">> := Name, <<"stages">> := Stages } = jiffy:decode(Body, [return_maps]),
+  Ad = disc_adventure:get_adventure(Uuid),
+  Ad2 = disc_adventure:clear_stages(Ad),
+  Ad3 = add_all_stages(Stages, Ad2),
+  Ad4 = disc_adventure:set_name(Ad3, Name),
+  disc_adventure:save(Ad4),
+  AdReply = adventure_to_map(Ad4),
+  {ok, Req3} = cowboy_req:reply(200,
+    [{<<"content-type">>, <<"application/json">>}],
+    jiffy:encode(AdReply), Req2),
   Req3.
-
 
 adventure_to_map(Ad) ->
   #{ <<"name">> => disc_adventure:get_name(Ad),
