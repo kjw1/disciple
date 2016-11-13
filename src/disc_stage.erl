@@ -1,6 +1,6 @@
 -module(disc_stage).
 
--export([init_ets/0, get_stage/1, new_outcome/2, new/4, save/1, apply_stage/2]).
+-export([init_ets/0, get_stage/1, new_outcome/2, new/4, save/1, apply_stage/2, all/0]).
 -export([get_id/1, get_description/1, get_success/1, get_failure/1]).
 -export([get_outcome_message/1, get_outcome_consequences/1]).
 
@@ -10,6 +10,9 @@
 
 init_ets() ->
   ets:new(disc_stage, [ordered_set, {keypos, #stage.id}, public, named_table]).
+
+all() ->
+  disc_ets_utils:all(disc_stage).
 
 get_stage(StageId) ->
   [Stage] = ets:lookup(disc_stage, StageId),

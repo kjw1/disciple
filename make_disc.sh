@@ -48,3 +48,6 @@ cat <<EOF |
 }
 EOF
 curl -sLv -X POST -H 'content-type: application/json' -d @- localhost:8080/1/adventure/$ADID
+
+curl -sLv -X GET -H 'content-type: application/json' localhost:8080/1/adventure | jq
+curl -sLv -X GET -H 'content-type: application/json' localhost:8080/1/stage | jq

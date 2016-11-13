@@ -20,6 +20,17 @@ handle(Req, State=#state{}) ->
 terminate(_Reason, _Req, _State) ->
   ok.
 
+handle_id(<<"GET">>, undefined, Req) ->
+  Stages = disc_stage:all(),
+  MapStages = lists:map(fun stage_to_map/1, Stages),
+  Reply = #{
+    <<"stages">> => MapStages,
+    <<"count">> => length(MapStages)
+  },
+  {ok, Req2} = cowboy_req:reply(200,
+    [{<<"content-type">>, <<"application/json">>}],
+    jiffy:encode(Reply), Req),
+  Req2;
 handle_id(<<"POST">>, undefined, Req) ->
   {ok, Body, Req2} = cowboy_req:body(Req),
   #{ <<"description">> := Description,

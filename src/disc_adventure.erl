@@ -1,6 +1,6 @@
 -module(disc_adventure).
 
--export([init_ets/0, go/2, get_adventure/1, save/1]).
+-export([init_ets/0, go/2, get_adventure/1, save/1, all/0]).
 -export([new/1, get_id/1, get_stages/1, get_name/1, add_stage/2]).
 -export([set_name/2, clear_stages/1]).
 
@@ -8,6 +8,9 @@
 
 init_ets() ->
   ets:new(disc_adventure, [ordered_set, {keypos, #adventure.id}, public, named_table]).
+
+all() ->
+  disc_ets_utils:all(disc_adventure).
 
 get_adventure(Id) ->
   [Adventure] = ets:lookup(disc_adventure, Id),
