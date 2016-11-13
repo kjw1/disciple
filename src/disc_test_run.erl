@@ -16,7 +16,7 @@ test_adventure() ->
                {"kobold camp found", []}, {"didn't find anything", [{focus, -1}]}
              },
              {"fight the kobolds", 100,
-               {"kobolds killed", [{confidence,2}]},
+               {"kobolds killed", [{confidence,2}, {skill,2}]},
                {"kobolds force a retreat", [{health, -10}]}
              } ],
   Ad2 = lists:foldl(fun add_stages/2, Ad1, Stages),
@@ -24,6 +24,12 @@ test_adventure() ->
   disc_adventure:go(Ad2, D).
 
 
-add_stages({Description, Difficulty, Success, Failure}, Ad) ->
-  disc_adventure:add_stage(Ad, Description, Difficulty, Success, Failure).
+add_stages({Description, Difficulty, {SMessage, SCons}, {FMessage, FCons}}, Ad) ->
+  SuccessOutcome = disc_stage:new_outcome(SMessage, SCons),
+  FailureOutcome = disc_stage:new_outcome(FMessage, FCons),
+  Stage = disc_stage:new(Description, Difficulty, SuccessOutcome, FailureOutcome),
+  disc_stage:save(Stage),
+  StageId = disc_stage:get_id(Stage),
+  disc_adventure:add_stage(Ad, StageId).
+
   

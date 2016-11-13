@@ -1,41 +1,44 @@
 -module(disc_adventure).
 
--export([new/0, add_stage/5, go/2]).
+-export([init_ets/0, new/0, add_stage/2, go/2, get_adventure/1, save/1]).
+-export([get_id/1]).
 
--record(stage, {description, difficulty, success, failure}).
--record(adventure, {stages = []}).
+-record(adventure, {id, stages = []}).
+
+init_ets() ->
+  ets:new(disc_adventure, [ordered_set, {keypos, #adventure.id}, public, named_table]).
+
+get_adventure(Id) ->
+  [Adventure] = ets:lookup(disc_adventure, Id),
+  Adventure.
+
+get_id(#adventure{id=Id}) ->
+  Id.
+
+save(#adventure{}=Adventure) ->
+  ets:insert(disc_adventure, Adventure).
 
 new() ->
-  #adventure{}.
+  #adventure{id=uuid:get_v4()}.
 
-add_stage(#adventure{stages=Stages}=Adventure, Description, Difficulty, SuccessMessage, FailureMessage) ->
-  Adventure#adventure{stages = [
-    #stage{description=Description,
-           difficulty=Difficulty,
-           success=SuccessMessage,
-           failure=FailureMessage}
-    | Stages]}.
-  
+add_stage(#adventure{stages=Stages}=Adventure, StageId) ->
+  Adventure#adventure{stages = [ StageId | Stages ]}.
 
-go(#adventure{stages=Stages}, Disciple) ->
-  apply_stages(Disciple, lists:reverse(Stages), []).
+go(#adventure{stages=StageIds}, Disciple) ->
+  Stages = lists:foldl(fun(StageId, StageAcc) ->
+    [ disc_stage:get_stage(StageId) | StageAcc ]
+  end, [], StageIds),
+  apply_stages(Disciple, Stages, []).
 
 apply_stages(_Disciple, [], Results) ->
-  [ success | Results ];
-apply_stages(Disciple, [#stage{description=Description,
-           difficulty=Difficulty,
-           success={SuccessMessage, SuccessCons},
-           failure={FailureMessage, FailureCons}} | Stages], Results) ->
-  io:format("New stage: ~p~n", [Description]),
-  disc_disciple:debug_print(Disciple),
-  case disc_disciple:face_challenge(Disciple, Difficulty, SuccessCons, FailureCons) of
-    success ->
-      io:format("Success: ~p~n", [SuccessMessage]),
-      disc_disciple:debug_print(Disciple),
-      apply_stages(Disciple, Stages, [ {success, SuccessMessage} | Results ]);
-    failure ->
-      io:format("Failure: ~p~n", [FailureMessage]),
-      [ {failure, FailureMessage } | Results ]
+  [ {success, "Adventure completed!"} | Results ];
+apply_stages(Disciple, [Stage | Stages], Results) ->
+  Result = disc_stage:apply_stage(Disciple, Stage),
+  case Result of
+    {success, _Message} ->
+      apply_stages(Disciple, Stages, [Result | Results]);
+    {failure, _Message} ->
+      [ Result | Results ]
   end.
 
 

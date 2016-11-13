@@ -23,22 +23,13 @@ find_disciple(Id) ->
   Pid.
 
 all() ->
-  First = ets:first(disciple_location),
-  collect_all(First, []).
+  AllLocations = disc_ets_utils:all(disciple_location),
+  lists:foldl(fun collect_stats/2, [], AllLocations).
 
-collect_all('$end_of_table', Results) ->
-  Results;
-collect_all(Id, Results) ->
-  Lookup = ets:lookup(disciple_location, Id),
-  case Lookup of
-    [#disciple_location{id=Id, pid=Pid}] ->
-      try
-        Stats = disc_disciple:get_stats(Pid),
-        collect_all(ets:next(disciple_location, Id),
-          [ Stats#{ id => uuid:uuid_to_string(Id, binary_standard) } | Results ])
-      catch _Class:_Error ->
-        collect_all(ets:next(disciple_location, Id), Results)
-      end;
-    [] ->
-      collect_all(ets:next(disciple_location, Id), Results)
+collect_stats(#disciple_location{id=Id, pid=Pid}, Results) ->
+  try
+    Stats = disc_disciple:get_stats(Pid),
+    [ Stats#{ id => uuid:uuid_to_string(Id, binary_standard) } | Results ]
+  catch _Class:_Error ->
+    Results
   end.

@@ -7,6 +7,7 @@
 start(_Type, _Args) ->
   Dispatch = cowboy_router:compile([
     {'_', [ {"/1/disciple/[:id/[:action]]", disc_disciple_http, []},
+            {"/1/adventure/[:id]", disc_disciple_http, []},
             {"/", cowboy_static, {priv_file, disciple, "static/index.html"}},
             {"/[...]", cowboy_static, {priv_dir, disciple, "static/"}}
           ]
@@ -16,6 +17,8 @@ start(_Type, _Args) ->
     [{env, [{dispatch, Dispatch}]}]
   ),
   disc_disciple_locator:init_ets(),
+  disc_adventure:init_ets(),
+  disc_stage:init_ets(),
   disciple_sup:start_link().
 
 stop(_State) ->
