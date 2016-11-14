@@ -50,7 +50,7 @@ handle_id(<<"GET">>, Id, Req) ->
     [{<<"content-type">>, <<"application/json">>}],
     jiffy:encode(AdReply), Req),
   Req2;
-handle_id(<<"POST">>, Id, Req) ->
+handle_id(<<"PUT">>, Id, Req) ->
   Uuid = uuid:string_to_uuid(Id),
   {ok, Body, Req2} = cowboy_req:body(Req),
   #{ <<"name">> := Name, <<"stages">> := Stages } = jiffy:decode(Body, [return_maps]),

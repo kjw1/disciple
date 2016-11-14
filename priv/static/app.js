@@ -41,6 +41,30 @@ app.Disciple = Backbone.Model.extend({
   }
 });
 
+app.Stage = Backbone.Model.extend({
+  defaults: {
+    difficulty: 1,
+    description: "cheer",
+    failure: {
+      message: "boo",
+      consequences: [
+        {
+	  stat: "health",
+	  change: -1
+        }
+      ]
+    },
+    success: {
+      message: "yay",
+      consequences: [
+        {
+	  stat: "health",
+	  change: 1
+        }
+      ]
+    }
+  }
+});
 //--------------
 // Collections
 //--------------
@@ -54,10 +78,38 @@ app.DiscipleList = Backbone.Collection.extend({
 
 app.discipleList = new app.DiscipleList();
 
+app.StageList = Backbone.Collection.extend({
+  model: app.Stage,
+  url: '/1/stage',
+  parse: function(response) {
+    return response.stages;
+  }
+});
+
+app.stageList = new app.StageList();
 //--------------
 // Views
 //--------------
 
+app.StageView = Backbone.View.extend({
+  tagName: 'li',
+  template: _.template($('#stage-template').html()),
+  render: function(){
+    var rendered = this.template(this.model.toJSON())
+    this.$el.html(rendered);
+    return this; // enable chained calls
+  },
+  doSave: function(e) {
+    this.model.set({
+     description: this.$('.stage-description').val().trim(),
+     difficulty: this.$('.difficulty').val()
+    });
+    this.model.save()
+  },
+  events: {
+    'click .update': 'doSave',
+  }
+});
 
 app.DiscipleView = Backbone.View.extend({
   tagName: 'li',
@@ -92,16 +144,19 @@ app.AppView = Backbone.View.extend({
   // It's the first function called when this view it's instantiated.
   initialize: function(){
     this.input = this.$('#new-disciple');
-    app.discipleList.on('add', this.addOne, this);
-    app.discipleList.on('reset', this.addAll, this);
+    app.discipleList.on('add', this.addOneDisciple, this);
+    app.discipleList.on('reset', this.addAllDisciples, this);
     app.discipleList.fetch();
+    app.stageList.on('add', this.addOneStage, this);
+    app.stageList.on('reset', this.addAllStages, this);
+    app.stageList.fetch();
     this.render();
   },
   events: {
-    'keypress #new-disciple': 'createDiscipleOnEnter'
+    'keypress #new-disciple': 'createDiscipleOnEnter',
+    'click #new-stage': 'createStage'
   },
   createDiscipleOnEnter: function(e){
-    console.log(e.which);
     if ( e.which !== 13 || !this.input.val().trim() ) { // ENTER_KEY = 13
       return;
     }
@@ -109,13 +164,24 @@ app.AppView = Backbone.View.extend({
     this.input.val(''); // clean input box
     app.log_append("Created new disciple!");
   },
-  addOne: function(disciple){
+  createStage: function(e) {
+    app.stageList.create({}, { wait: true });
+  },
+  addOneDisciple: function(disciple){
     var view = new app.DiscipleView({model: disciple});
     $('#disciple-list').append(view.render().el);
   },
-  addAll: function(){
+  addAllDisciples: function(){
     this.$('#disciple-list').html(''); // clean the disciple list
-    app.discipleList.each(this.addOne, this);
+    app.discipleList.each(this.addOneDisciple, this);
+  },
+  addOneStage: function(stage){
+    var view = new app.StageView({model: stage});
+    $('#stage-list').append(view.render().el);
+  },
+  addAllStages: function(){
+    this.$('#stage-list').html(''); // clean the disciple list
+    app.discipleList.each(this.addOneStage, this);
   },
   newAttributes: function(){
     return {

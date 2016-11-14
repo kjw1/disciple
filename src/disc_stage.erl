@@ -1,8 +1,9 @@
 -module(disc_stage).
 
 -export([init_ets/0, get_stage/1, new_outcome/2, new/4, save/1, apply_stage/2, all/0]).
--export([get_id/1, get_description/1, get_success/1, get_failure/1]).
+-export([get_id/1, get_description/1, get_difficulty/1, get_success/1, get_failure/1]).
 -export([get_outcome_message/1, get_outcome_consequences/1]).
+-export([update/5]).
 
 
 -record(stage, {id, description, difficulty, success, failure}).
@@ -30,6 +31,8 @@ get_id(#stage{id=Id}) ->
   Id.
 get_description(#stage{description=Description}) ->
   Description.
+get_difficulty(#stage{difficulty=Difficulty}) ->
+  Difficulty.
 get_failure(#stage{failure=Failure}) ->
   Failure.
 get_success(#stage{success=Success}) ->
@@ -37,6 +40,13 @@ get_success(#stage{success=Success}) ->
 
 new(Description, Difficulty, SuccessOutcome, FailureOutcome) ->
   #stage{id=uuid:get_v4(),
+         description=Description,
+	 difficulty=Difficulty,
+	 success=SuccessOutcome,
+	 failure=FailureOutcome}.
+
+update(Id, Description, Difficulty, SuccessOutcome, FailureOutcome) ->
+  #stage{id=Id,
          description=Description,
 	 difficulty=Difficulty,
 	 success=SuccessOutcome,

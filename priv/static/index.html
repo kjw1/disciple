@@ -34,12 +34,70 @@
       <input id="new-disciple" placeholder="Bob Bobberson">
     </header>
     <section id="main">
+      <button id="new-stage">New Stage</button>
       <textarea cols=100 rows=30 id="disciple-log" readonly=true></textarea>
       <ul id="disciple-list"></ul>
+      <ul id="stage-list"></ul>
     </section>
   </section>
 
   <!-- Templates -->
+
+  <script type="text/template" id="consequence-template">
+  </script>
+  <script type="text/template" id="stage-template">
+    <div class="stage-view">
+      <ul>
+	<li>
+	  <label>Description</label>
+          <input class="stage-description" value="<%- description %>">
+        </li>
+	<li>
+	  <label>Difficulty</label>
+	  <input class="difficulty" type="number" min="1" max="300" step="1", value="<%- difficulty %>">
+        </li>
+	<li>
+	  <label>Success</label>
+	  <textarea class="success-message"><%- success.message %></textarea>
+	  <ul class="success-consequences">
+          <% _.each(success.consequences, function(consequence)  { %>
+	    <li>
+	      <div class="consequence-view">
+		<select class="stat" default="<%- consequence.stat %>">
+		  <option value="health">Health</option>
+		  <option value="condience">Confidence</option>
+		  <option value="focus">Focus</option>
+		</select>
+		<input class="change" type="number" min="-20" max="20" step="0.1" value="<%- consequence.change %>">
+	      </div>
+	    </li>
+          <% }); %>
+	  </ul>
+        </li>
+	<li>
+	  <label>Failure</label>
+	  <textarea class="failure-message"><%- failure.message %></textarea>
+	  <ul class="failure-consequences">
+          <% _.each(failure.consequences, function(consequence)  { %>
+	    <li>
+	      <div class="consequence-view">
+		<select class="stat" default="<%- consequence.stat %>">
+		  <option value="health">Health</option>
+		  <option value="condience">Confidence</option>
+		  <option value="focus">Focus</option>
+		</select>
+		<input class="change" type="number" min="-20" max="20" step="0.1" value="<%- consequence.change %>">
+	      </div>
+	    </li>
+          <% }); %>
+	  </ul>
+        </li>
+        <li>
+	  <button class="update">Update</button>
+        </li>
+      </ul>
+    </div>
+  </script>  
 
   <script type="text/template" id="disciple-template">
     <div class="view">

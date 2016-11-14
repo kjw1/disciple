@@ -53,6 +53,29 @@ handle_id(<<"POST">>, undefined, Req) ->
     [{<<"content-type">>, <<"application/json">>}],
     jiffy:encode(StageReply), Req2),
   Req3;
+handle_id(<<"PUT">>, Id, Req) ->
+  {ok, Body, Req2} = cowboy_req:body(Req),
+  #{ <<"description">> := Description,
+     <<"difficulty">> := Difficulty,
+     <<"success">> := #{
+       <<"message">> := SMessage,
+       <<"consequences">> := SCons
+     },
+     <<"failure">> := #{
+       <<"message">> := FMessage,
+       <<"consequences">> := FCons
+     }
+  } = jiffy:decode(Body, [return_maps]),
+  Success = disc_stage:new_outcome(SMessage, translate_cons(SCons)),
+  Failure = disc_stage:new_outcome(FMessage, translate_cons(FCons)),
+  Stage = disc_stage:update(uuid:string_to_uuid(Id),
+                            Description, Difficulty, Success, Failure),
+  disc_stage:save(Stage),
+  StageReply = stage_to_map(Stage),
+  {ok, Req3} = cowboy_req:reply(200,
+    [{<<"content-type">>, <<"application/json">>}],
+    jiffy:encode(StageReply), Req2),
+  Req3;
 handle_id(<<"GET">>, Id, Req) ->
   Uuid = uuid:string_to_uuid(Id),
   Stage = disc_stage:get_stage(Uuid),
@@ -77,6 +100,7 @@ translate_stat(<<"focus">>) ->
 stage_to_map(Stage) ->
   #{ <<"description">> => disc_stage:get_description(Stage),
      <<"id">> => uuid:uuid_to_string(disc_stage:get_id(Stage), binary_standard),
+     <<"difficulty">> => disc_stage:get_difficulty(Stage),
      <<"success">> => convert_outcome_to_map(disc_stage:get_success(Stage)),
      <<"failure">> => convert_outcome_to_map(disc_stage:get_failure(Stage))
   }.
