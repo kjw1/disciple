@@ -41,6 +41,13 @@ app.Disciple = Backbone.Model.extend({
   }
 });
 
+app.Adventure = Backbone.Model.extend({
+  defaults: {
+    name: "Go win",
+    stages: []
+  }
+});
+
 app.Stage = Backbone.Model.extend({
   defaults: {
     difficulty: 1,
@@ -87,9 +94,42 @@ app.StageList = Backbone.Collection.extend({
 });
 
 app.stageList = new app.StageList();
+
+app.AdventureList = Backbone.Collection.extend({
+  model: app.Adventure,
+  url: '/1/adventure',
+  parse: function(response) {
+    return response.adventures;
+  }
+});
+
+app.adventureList = new app.AdventureList();
 //--------------
 // Views
 //--------------
+
+app.AdventureView = Backbone.View.extend({
+  tagName: 'li',
+  template: _.template($('#adventure-template').html()),
+  render: function(){
+    var templateParams = {
+      adventure: this.model.toJSON(),
+      allStages: app.stageList
+    }
+    var rendered = this.template(templateParams)
+    this.$el.html(rendered);
+    return this; // enable chained calls
+  },
+  doSave: function(e) {
+    this.model.set({
+     name: this.$('.adventure-name').val().trim(),
+    });
+    this.model.save()
+  },
+  events: {
+    'click .update': 'doSave',
+  }
+});
 
 app.StageView = Backbone.View.extend({
   tagName: 'li',
@@ -150,6 +190,9 @@ app.AppView = Backbone.View.extend({
     app.stageList.on('add', this.addOneStage, this);
     app.stageList.on('reset', this.addAllStages, this);
     app.stageList.fetch();
+    app.adventureList.on('add', this.addOneAdventure, this);
+    app.adventureList.on('reset', this.addAllAdventures, this);
+    app.adventureList.fetch();
     this.render();
   },
   events: {
@@ -181,7 +224,15 @@ app.AppView = Backbone.View.extend({
   },
   addAllStages: function(){
     this.$('#stage-list').html(''); // clean the disciple list
-    app.discipleList.each(this.addOneStage, this);
+    app.stageList.each(this.addOneStage, this);
+  },
+  addOneAdventure: function(adventure){
+    var view = new app.AdventureView({model: adventure});
+    $('#adventure-list').append(view.render().el);
+  },
+  addAllAdventures: function(){
+    this.$('#adventure-list').html(''); // clean the disciple list
+    app.adventureList.each(this.addOneAdventure, this);
   },
   newAttributes: function(){
     return {

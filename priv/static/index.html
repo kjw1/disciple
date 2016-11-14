@@ -38,12 +38,37 @@
       <textarea cols=100 rows=30 id="disciple-log" readonly=true></textarea>
       <ul id="disciple-list"></ul>
       <ul id="stage-list"></ul>
+      <ul id="adventure-list"></ul>
     </section>
   </section>
 
   <!-- Templates -->
 
-  <script type="text/template" id="consequence-template">
+  <script type="text/template" id="adventure-template">
+    <div class="adventure-view">
+    <ul>
+      <li>
+        <label>Name</label>
+        <input class="adventure-name" value="<%- adventure.name %>">
+      </li>
+      <li>
+        <label>Stages</label>
+        <ul>
+        <% _.each(adventure.stages, function(stageId) { %>
+          <li> 
+          <%- allStages.findWhere({ id: stageId }).description %>
+          </li>
+        <% }); %>
+        </ul>
+      </li>
+      <select>
+      <% allStages.each(function(stage) { %>
+        <option value=<%- stage.id %>><%- stage.description %></option>
+      <% }); %>
+      </select>
+      <button class="add-stage">Add Stage</button>
+      <button class="update">Save</button>
+    </div>
   </script>
   <script type="text/template" id="stage-template">
     <div class="stage-view">
