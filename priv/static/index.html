@@ -54,15 +54,15 @@
       <li>
         <label>Stages</label>
         <ul>
-        <% _.each(adventure.stages, function(stageId) { %>
+        <% _.each(adventureStages, function(stage) { %>
           <li> 
-          <%- allStages.findWhere({ id: stageId }).description %>
+          <%- stage.description %>
           </li>
         <% }); %>
         </ul>
       </li>
       <select>
-      <% allStages.each(function(stage) { %>
+      <% _.each(allStages, function(stage) { %>
         <option value=<%- stage.id %>><%- stage.description %></option>
       <% }); %>
       </select>

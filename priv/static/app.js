@@ -112,9 +112,25 @@ app.AdventureView = Backbone.View.extend({
   tagName: 'li',
   template: _.template($('#adventure-template').html()),
   render: function(){
+    var adventureStages = _.map(this.model.attributes.stages,
+      function(stageId) {
+        var stage = app.stageList.get(stageId);
+	return {
+	 id: stage.id,
+	 description: stage.attributes.description,
+	};
+      });
+
+    var allStages = app.stageList.map(function(stage) {
+      return {
+        id: stage.id,
+        description: stage.attributes.description
+      };
+    });
     var templateParams = {
       adventure: this.model.toJSON(),
-      allStages: app.stageList
+      adventureStages: adventureStages,
+      allStages: allStages
     }
     var rendered = this.template(templateParams)
     this.$el.html(rendered);
