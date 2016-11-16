@@ -61,7 +61,7 @@
         <% }); %>
         </ul>
       </li>
-      <select>
+      <select class="new-stage-selection">
       <% _.each(allStages, function(stage) { %>
         <option value=<%- stage.id %>><%- stage.description %></option>
       <% }); %>
@@ -124,6 +124,7 @@
     </div>
   </script>  
 
+
   <script type="text/template" id="disciple-template">
     <div class="view">
       <label><%- name %></label>
@@ -152,7 +153,7 @@
   <!-- =============== -->
   <!-- Javascript code -->
   <!-- =============== -->
-  <script src="./app.js" type="text/javascript"> </script>
+  <script src="./app.js" type="text/javascript"> </script> 
   
 </body>
 </html>

@@ -104,6 +104,7 @@ app.AdventureList = Backbone.Collection.extend({
 });
 
 app.adventureList = new app.AdventureList();
+
 //--------------
 // Views
 //--------------
@@ -111,8 +112,16 @@ app.adventureList = new app.AdventureList();
 app.AdventureView = Backbone.View.extend({
   tagName: 'li',
   template: _.template($('#adventure-template').html()),
+  initialize: function() {
+    this.stages = this.model.attributes.stages;
+    app.stageList.on('add', this.addStage, this);
+    app.stageList.on('reset', this.addStage, this);
+  },
+  addStage: function() {
+    this.render();
+  },
   render: function(){
-    var adventureStages = _.map(this.model.attributes.stages,
+    var adventureStages = _.map(this.stages,
       function(stageId) {
         var stage = app.stageList.get(stageId);
 	return {
@@ -139,11 +148,18 @@ app.AdventureView = Backbone.View.extend({
   doSave: function(e) {
     this.model.set({
      name: this.$('.adventure-name').val().trim(),
+     stages: this.stages
     });
     this.model.save()
   },
+  addStage: function(e) {
+    var newStage = this.$('.new-stage-selection').val();
+    this.stages.push(newStage);
+    this.render()
+  },
   events: {
     'click .update': 'doSave',
+    'click .add-stage': 'addStage'
   }
 });
 
